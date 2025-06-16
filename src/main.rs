@@ -105,7 +105,7 @@ async fn main() -> std::io::Result<()> {
             .service(todo)
             .app_data(web::Data::new(pool.clone()))
     })
-    .bind(("0.0.0.0", 8080))?
+    .bind(("0.0.0.0", 10000))?
     .run()
     .await
 }
