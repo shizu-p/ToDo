@@ -14,7 +14,7 @@
             <li id="task-item-{{ item.id }}">
                 <span class="task-name">{{ item.task }}</span> (優先度: {{ item.priority }})
                 {# 完了(削除用フォーム) #}
-                <form aciton"/update" method="post" class="delete-form">
+                <form action="/update" method="post" class="delete-form">
                     <input type="hidden" name"id" value="{{ item.id }}"> {# 削除するタスクid送信 #}
                     <button type="submit">完了(削除)</button>
                 </form>

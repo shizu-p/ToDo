@@ -63,8 +63,10 @@ async fn update(pool: web::Data<SqlitePool>, form: web::Form<Task>) -> HttpRespo
     }
 
     // 挿入/更新処理
-    if let Some(task_content) = received_task.task { // String型の中身を取り出す
-        if !task_content.is_empty() { // 文字列が空でないことを確認
+    if let Some(task_content) = received_task.task {
+        // String型の中身を取り出す
+        if !task_content.is_empty() {
+            // 文字列が空でないことを確認
             // priorityは元のreceived_taskから取得
             let priority = received_task.priority.unwrap_or(0); // Noneの場合にデフォルト値0を設定
 
