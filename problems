@@ -1,0 +1,26 @@
+# 課題
+
+## ToDoの追加の問題
+ToDoの追加自体はできるが優先度を入力しても0として追加されてしまう
+
+現在原因解明中
+
+## 完了を押しても削除されない
+完了ボタンを押しても何も変化が起きない
+仕様は完了ボタンを押すとToDoが削除される
+未実装のため
+
+
+## crateバージョン不整合の問題
+Cargo.toml
+askama = { version = "0.12", features = ["with-actix-web"] } 
+askama_actix = "0.12"
+
+これをbuildすると不整合の問題が発生するため問題が発生していなかったときのversionに戻した
+
+Cargo.toml
+askama = "0.12"
+askama_actix = "0.14"
+
+
+
