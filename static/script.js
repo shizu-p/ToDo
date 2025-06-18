@@ -43,4 +43,13 @@ async function deleteTask(taskId,taskElementId) {
                 completeButton.textContent = '完了';
             }
         }
+    } catch (error) {
+        console.error(`API呼び出し中にネットワークエラーが発生しました:`,error);
+        alert(`ネットワークエラーが発生しました。タスク "${taskName}" を削除できませんでした。`);
+
+        if(completeButton) {
+            completeButton.disabled = false;
+            completeButton.textContent = '完了';
+        }
+    }
 }
