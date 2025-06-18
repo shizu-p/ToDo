@@ -1,6 +1,6 @@
 /**
  * delete task
- * @param {string} taskId - DBに存在するuniqueID
+ * @param {string} taskId - RustのDBに存在するuniqueID
  * @param {string} taskElementId - HTML上のタスクDOM
  */
 
@@ -10,13 +10,13 @@ async function deleteTask(taskId,taskElementId) {
         console.error(`エラー:HTML要素ID{taskElementId}のタスクが見つかりませんでした。`);
         return;
     }
-    const taskNameSpan = taskItem.querySector('.task-name');
+    const taskNameSpan = taskItem.querySelector('.task-name');
     const taskName = taskNameSpan ? taskNameSpan.textContent:'不明なタスク';
-    const completeButton = taskItem.querySelector('.complete-bton');
+    const completeButton = taskItem.querySelector('.complete-btn');
 
     if(completeButton) {
-        completeButton.disable = true;
-        completeButton.textContent = '削除中';
+        completeButton.disabled = true;
+        completeButton.textContent = '削除中...';
     }
 
     console.log(`taskID ${taskId} (${taskName}) の削除を試みます`);

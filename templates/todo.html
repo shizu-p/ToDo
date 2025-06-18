@@ -9,10 +9,10 @@
     <h1>My Todo List</h1>
     <ul id="tasklist">
         {# 課題と優先度を一緒にループで表示します #}
-        {# item.idをDBのユニークidとする #}
+        {# item.idをDBのユニークid i64  #}
         {% for item in items %}
             <li id="task-item-{{ item.id }}">
-                <span class="task-name">{{ item.task }}</ span>(優先度: {{ item.priority }})
+                <span class="task-name">{{ item.task }}</ span>(優先度: {{ item.priority | default(0) }})
                 <button class="complete-btn" onclick="deleteTask('{{ item.id}}' , task-item-{{ item.id }}')">完了</button>
             </li>
         {% endfor %}
@@ -21,12 +21,12 @@
     <hr> {# 区切り線 #}
 
     <h2>新しいタスクを追加</h2>
-    <form action="/update" method="post">
+    <form action="/add_task" method="post">
         <label for="new-task">タスク名:</label>
         <input type="text" id="new-task" name="task" placeholder="例: 買い物" required>
         <br>
         <label for="new-priority">優先度:</label>
-        <input type="number" id="new-priority" name="priority" placeholder="例: 1" min="1" max="10">
+        <input type="number" id="new-priority" name="priority" placeholder="例: 1" min="1" max="10",value="5">
         <br>
         <button type="submit">追加</button>
     </form>
