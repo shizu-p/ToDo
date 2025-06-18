@@ -2,6 +2,7 @@ use actix_web::{App, HttpResponse, HttpServer, get, post, web};
 use askama::Template;
 use askama_actix::TemplateToResponse;
 use sqlx::{Row, SqlitePool};
+use sqlx::FromRow;
 
 #[derive(Template)]
 #[template(path = "hello.html")]
@@ -20,21 +21,25 @@ async fn hello(name: web::Path<String>) -> HttpResponse {
 #[derive(Template)]
 #[template(path = "todo.html")]
 struct TodoTemplate {
-    tasks: Vec<String>,
+    items: Vec<TodoItem>,
 }
+
+#[derive(FromRow)]
+struct TodoItem{
+    task:String,
+    priority:u32,
+}
+
 
 #[get("/")]
 async fn todo(pool: web::Data<SqlitePool>) -> HttpResponse {
-    let rows = sqlx::query("SELECT task FROM tasks;")
+    // SQLクエリで直接TodoItemにマッピング
+    let items = sqlx::query_as::<_, TodoItem>("SELECT task, COALESCE(priority, 0) as priority FROM tasks;")
         .fetch_all(pool.as_ref())
         .await
         .unwrap();
 
-    let tasks: Vec<String> = rows
-        .iter()
-        .map(|row| row.get::<String, _>("task"))
-        .collect();
-    let todo = TodoTemplate { tasks };
+    let todo = TodoTemplate { items };
     todo.to_response()
 }
 
@@ -42,6 +47,7 @@ async fn todo(pool: web::Data<SqlitePool>) -> HttpResponse {
 struct Task {
     id: Option<String>,
     task: Option<String>,
+    priority: Option<u32>,
 }
 
 #[post("/update")]
@@ -78,22 +84,22 @@ async fn update(pool: web::Data<SqlitePool>, form: web::Form<Task>) -> HttpRespo
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     let pool = SqlitePool::connect("sqlite::memory:").await.unwrap();
-    sqlx::query("CREATE TABLE tasks (task TEXT)")
+    sqlx::query("CREATE TABLE tasks (task TEXT,priority INTEGER)")
         .execute(&pool)
         .await
         .unwrap();
 
-    sqlx::query("INSERT INTO tasks (task) VALUES ('task1')")
+    sqlx::query("INSERT INTO tasks (task,priority) VALUES ('task1',1)")
         .execute(&pool)
         .await
         .unwrap();
 
-    sqlx::query("INSERT INTO tasks (task) VALUES ('task2')")
+    sqlx::query("INSERT INTO tasks (task,priority) VALUES ('task2',2)")
         .execute(&pool)
         .await
         .unwrap();
 
-    sqlx::query("INSERT INTO tasks (task) VALUES ('task3')")
+    sqlx::query("INSERT INTO tasks (task,priority) VALUES ('task3',3)")
         .execute(&pool)
         .await
         .unwrap();
@@ -105,7 +111,7 @@ async fn main() -> std::io::Result<()> {
             .service(todo)
             .app_data(web::Data::new(pool.clone()))
     })
-    .bind(("0.0.0.0", 10000))?
+    .bind(("0.0.0.0", 8080))?
     .run()
     .await
 }
