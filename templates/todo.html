@@ -7,11 +7,14 @@
 </head>
 <body>
     <h1>My Todo List</h1>
-    <ul>
+    <ul id="tasklist">
         {# 課題と優先度を一緒にループで表示します #}
+        {# item.idをDBのユニークidとする #}
         {% for item in items %}
-            {# loop.index は現在のループのインデックス (0から始まる) です #}
-            <li>{{ item.task }} (優先度: {{ item.priority }})</li>
+            <li id="task-item-{{ item.id }}">
+                <span class="task-name">{{ item.task }}</ span>(優先度: {{ item.priority }})
+                <button class="complete-btn" onclick="deleteTask('{{ item.id}}' , task-item-{{ item.id }}')">完了</button>
+            </li>
         {% endfor %}
     </ul>
 
@@ -27,5 +30,6 @@
         <br>
         <button type="submit">追加</button>
     </form>
+    <script src="/static/script.js"></script>
 </body>
 </html>
