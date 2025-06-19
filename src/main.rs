@@ -50,7 +50,8 @@ struct Task {
 }
 
 #[post("/update")]
-async fn update(pool: web::Data<SqlitePool>, form: web::Form<Task>) -> HttpResponse {
+async fn update(pool: web::Data<SqlitePool>, form: web::Form<Task>)
+-> std::io::Result<HttpResponse> {
     let received_task = form.into_inner(); // シャドウイングを避けるため、変数をリネーム
 
     // 削除処理
@@ -60,7 +61,12 @@ async fn update(pool: web::Data<SqlitePool>, form: web::Form<Task>) -> HttpRespo
                 .bind(id)
                 .execute(pool.as_ref())
                 .await
-                .unwrap();
+                .map_err(|e| {
+                    std::io::Error::new(
+                        std::io::ErrorKind::Other,
+                        format!("削除クエリが失敗しました : {}",e),
+                    )
+                });
         }
         _ => {}
     }
@@ -76,14 +82,20 @@ async fn update(pool: web::Data<SqlitePool>, form: web::Form<Task>) -> HttpRespo
                     .bind(priority)
                     .execute(pool.as_ref())
                     .await
-                    .unwrap();
+                    .map_err(|e| {
+                        std::io::Error::new(
+                            std::io::ErrorKind::Other,
+                            format!("追加クエリが失敗しました: {}",e),
+                        )
+                    });
             }
         }
         _ => {}
     }
-    HttpResponse::Found()
+
+    Ok(HttpResponse::Found()
         .append_header(("Location", "/"))
-        .finish()
+        .finish())
 }
 
 #[actix_web::main]
