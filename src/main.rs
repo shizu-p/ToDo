@@ -54,29 +54,33 @@ async fn update(pool: web::Data<SqlitePool>, form: web::Form<Task>) -> HttpRespo
     let received_task = form.into_inner(); // シャドウイングを避けるため、変数をリネーム
 
     // 削除処理
-    if let Some(id) = received_task.id {
-        sqlx::query("DELETE FROM tasks WHERE id = ?")
-            .bind(id)
-            .execute(pool.as_ref())
-            .await
-            .unwrap();
-    }
-
-    // 挿入/更新処理
-    if let Some(task_content) = received_task.task {
-        // String型の中身を取り出す
-        if !task_content.is_empty() {
-            // 文字列が空でないことを確認
-            // priorityは元のreceived_taskから取得
-            let priority = received_task.priority.unwrap_or(0); // Noneの場合にデフォルト値0を設定
-
-            sqlx::query("INSERT INTO tasks (task,priority) VALUES(?,?)")
-                .bind(task_content) // task_content (String) をバインド
-                .bind(priority)
+    match received_task.id {
+        Some(id) => {
+            sqlx::query("DELETE FROM tasks WHERE id = ?")
+                .bind(id)
                 .execute(pool.as_ref())
                 .await
                 .unwrap();
         }
+        _ => {
+        }
+    }
+
+    // 挿入/更新処理
+
+    match received_task.task {
+        Some(task) => {
+            if !task.is_empty() {
+                let priority = received_task.priority.unwrap_or(0);
+                sqlx::query("INSERT INTO tasks (task,priority) VALUES(?,?)")
+                    .bind(task)
+                    .bind(priority)
+                    .execute(pool.as_ref())
+                    .await
+                    .unwrap();
+            }
+        }
+        _ => {}
     }
     HttpResponse::Found()
         .append_header(("Location", "/"))
@@ -93,7 +97,7 @@ async fn main() -> std::io::Result<()> {
             task TEXT NOT NULL,
             priority INTEGER
         )
-    ",
+        ",
     )
     .execute(&pool)
     .await
