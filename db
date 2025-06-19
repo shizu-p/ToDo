@@ -1,0 +1,146 @@
+   Compiling todo v0.1.0 (/home/linux/rust/ToDo)
+error[E0432]: unresolved import `derive_more`
+ --> src/main.rs:7:5
+  |
+7 | use derive_more::{Display,Error};
+  |     ^^^^^^^^^^^ use of unresolved module or unlinked crate `derive_more`
+  |
+  = help: if you wanted to use a crate named `derive_more`, use `cargo add derive_more` to add it to your `Cargo.toml`
+
+error: cannot find attribute `display` in this scope
+  --> src/main.rs:12:7
+   |
+12 |     #[display(fmt = "Database error: {}", _0)]
+   |       ^^^^^^^
+
+error: cannot find attribute `from` in this scope
+  --> src/main.rs:13:17
+   |
+13 |     SqlxError(#[from] sqlx::Error),
+   |                 ^^^^
+
+error: cannot find attribute `display` in this scope
+  --> src/main.rs:15:7
+   |
+15 |     #[display(fmt = "Internal Server Error")]
+   |       ^^^^^^^
+
+error[E0277]: `MyError` doesn't implement `std::fmt::Display`
+  --> src/main.rs:19:24
+   |
+19 | impl ResponseError for MyError {
+   |                        ^^^^^^^ `MyError` cannot be formatted with the default formatter
+   |
+   = help: the trait `std::fmt::Display` is not implemented for `MyError`
+   = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
+note: required by a bound in `ResponseError`
+  --> /home/linux/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/actix-web-4.11.0/src/error/response_error.rs:26:39
+   |
+26 | pub trait ResponseError: fmt::Debug + fmt::Display {
+   |                                       ^^^^^^^^^^^^ required by this bound in `ResponseError`
+
+error[E0277]: `?` couldn't convert the error to `MyError`
+  --> src/main.rs:92:23
+   |
+89 | /             sqlx::query("DELETE FROM tasks WHERE id = ?")
+90 | |                 .bind(id)
+91 | |                 .execute(pool.as_ref())
+92 | |                 .await?
+   | |                      -^ the trait `std::convert::From<sqlx::Error>` is not implemented for `MyError`
+   | |______________________|
+   |                        this can't be annotated with `?` because it has type `Result<_, sqlx::Error>`
+   |
+note: `MyError` needs to implement `From<sqlx::Error>`
+  --> src/main.rs:11:1
+   |
+11 | enum MyError {
+   | ^^^^^^^^^^^^
+   = note: the question mark operation (`?`) implicitly performs a conversion on the error value using the `From` trait
+
+error[E0308]: mismatched types
+  --> src/main.rs:89:13
+   |
+87 | /      match received_task.id {
+88 | |          Some(id) => {
+89 | |/             sqlx::query("DELETE FROM tasks WHERE id = ?")
+90 | ||                 .bind(id)
+91 | ||                 .execute(pool.as_ref())
+92 | ||                 .await?
+   | ||_______________________^ expected `()`, found `SqliteQueryResult`
+...  |
+96 | |      }
+   | |______- expected this to be `()`
+   |
+help: consider using a semicolon here
+   |
+92 |                 .await?;
+   |                        +
+help: consider using a semicolon here
+   |
+96 |     };
+   |      +
+
+error[E0277]: `?` couldn't convert the error to `MyError`
+   --> src/main.rs:108:27
+    |
+104 | /                 sqlx::query("INSERT INTO tasks (task,priority) VALUES(?,?)")
+105 | |                     .bind(task)
+106 | |                     .bind(priority)
+107 | |                     .execute(pool.as_ref())
+108 | |                     .await?
+    | |                          -^ the trait `std::convert::From<sqlx::Error>` is not implemented for `MyError`
+    | |__________________________|
+    |                            this can't be annotated with `?` because it has type `Result<_, sqlx::Error>`
+    |
+note: `MyError` needs to implement `From<sqlx::Error>`
+   --> src/main.rs:11:1
+    |
+11  | enum MyError {
+    | ^^^^^^^^^^^^
+    = note: the question mark operation (`?`) implicitly performs a conversion on the error value using the `From` trait
+
+error[E0308]: mismatched types
+   --> src/main.rs:104:17
+    |
+102 | /              if !task.is_empty() {
+103 | |                  let priority = received_task.priority.unwrap_or(0);
+104 | |/                 sqlx::query("INSERT INTO tasks (task,priority) VALUES(?,?)")
+105 | ||                     .bind(task)
+106 | ||                     .bind(priority)
+107 | ||                     .execute(pool.as_ref())
+108 | ||                     .await?
+    | ||___________________________^ expected `()`, found `SqliteQueryResult`
+109 | |              }
+    | |______________- expected this to be `()`
+    |
+help: consider using a semicolon here
+    |
+108 |                     .await?;
+    |                            +
+help: consider using a semicolon here
+    |
+109 |             };
+    |              +
+
+error[E0599]: no variant named `Sqlx` found for enum `MyError`
+  --> src/main.rs:22:22
+   |
+11 | enum MyError {
+   | ------------ variant `Sqlx` not found here
+...
+22 |             MyError::Sqlx::Error(_) => {
+   |                      ^^^^ variant not found in `MyError`
+
+error[E0277]: `MyError` doesn't implement `std::fmt::Display`
+  --> src/main.rs:24:64
+   |
+24 |                     .body(format!("Database error occured: {}",self))
+   |                                                                ^^^^ `MyError` cannot be formatted with the default formatter
+   |
+   = help: the trait `std::fmt::Display` is not implemented for `MyError`
+   = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
+   = note: this error originates in the macro `$crate::__export::format_args` which comes from the expansion of the macro `format` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+Some errors have detailed explanations: E0277, E0308, E0432, E0599.
+For more information about an error, try `rustc --explain E0277`.
+error: could not compile `todo` (bin "todo") due to 11 previous errors

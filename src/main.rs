@@ -62,8 +62,7 @@ async fn update(pool: web::Data<SqlitePool>, form: web::Form<Task>) -> HttpRespo
                 .await
                 .unwrap();
         }
-        _ => {
-        }
+        _ => {}
     }
 
     // 挿入/更新処理
@@ -89,7 +88,13 @@ async fn update(pool: web::Data<SqlitePool>, form: web::Form<Task>) -> HttpRespo
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    let pool = SqlitePool::connect("sqlite::memory:").await.unwrap();
+    let pool = SqlitePool::connect("sqlite::memory:").await.map_err(|e| {
+        std::io::Error::new(
+            std::io::ErrorKind::Other,
+            format!("DBへの接続に失敗しました: {}", e),
+        )
+    })?;
+
     sqlx::query(
         "
         CREATE TABLE IF NOT EXISTS tasks (
@@ -101,22 +106,42 @@ async fn main() -> std::io::Result<()> {
     )
     .execute(&pool)
     .await
-    .unwrap();
+    .map_err(|e| {
+        std::io::Error::new(
+            std::io::ErrorKind::Other,
+            format!("テーブルの作成に失敗しました:{}", e),
+        )
+    });
 
     sqlx::query("INSERT INTO tasks (task,priority) VALUES ('task1',1)")
         .execute(&pool)
         .await
-        .unwrap();
+        .map_err(|e| {
+            std::io::Error::new(
+                std::io::ErrorKind::Other,
+                format!("タスクの作成に失敗しました: {}", e),
+            )
+        });
 
     sqlx::query("INSERT INTO tasks (task,priority) VALUES ('task2',2)")
         .execute(&pool)
         .await
-        .unwrap();
+        .map_err(|e| {
+            std::io::Error::new(
+                std::io::ErrorKind::Other,
+                format!("タスクの作成に失敗しました: {}", e),
+            )
+        });
 
     sqlx::query("INSERT INTO tasks (task,priority) VALUES ('task3',3)")
         .execute(&pool)
         .await
-        .unwrap();
+        .map_err(|e| {
+            std::io::Error::new(
+                std::io::ErrorKind::Other,
+                format!("タスクの作成に失敗しました: {}", e),
+            )
+        });
 
     HttpServer::new(move || {
         App::new()
@@ -127,5 +152,7 @@ async fn main() -> std::io::Result<()> {
     })
     .bind(("0.0.0.0", 8080))?
     .run()
-    .await
+    .await?;
+
+    Ok(())
 }
