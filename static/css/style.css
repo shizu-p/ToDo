@@ -1,0 +1,85 @@
+/* static/css/style.css */
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+h1 {
+    color: #0056b3;
+}
+
+#tasklist {
+    list-style-type: none;
+    padding: 0;
+}
+
+#tasklist li {
+    background-color: #fff;
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.task-name {
+    font-size : 20px;
+    font-weight: bold;
+    flex-grow: 1;
+}
+
+.delete-form button {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 5px 5px;
+  margin: 5px 10px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+
+.delete-form button:hover {
+    background-color: #c82333;
+}
+
+form {
+    //margin-top: 20px;
+    //background-color: #fff;
+    padding: 20px;
+    border-radius: 5px;
+//    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+form label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+form input[type="text"],
+form input[type="number"] {
+    width: calc(100% - 22px); /* PaddingとBorderを考慮 */
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+form button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+form button:hover {
+    background-color: #0056b3;
+}

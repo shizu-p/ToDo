@@ -2,6 +2,8 @@ use actix_web::{App, HttpResponse, HttpServer, get, post, web};
 use askama::Template;
 use askama_actix::TemplateToResponse;
 use sqlx::{FromRow, SqlitePool};
+use actix_files::Files;
+
 
 #[derive(Template)]
 #[template(path = "hello.html")]
@@ -87,7 +89,7 @@ async fn update(pool: web::Data<SqlitePool>, form: web::Form<Task>)
                             std::io::ErrorKind::Other,
                             format!("追加クエリが失敗しました: {}",e),
                         )
-                    });
+                    })?;
             }
         }
         _ => {}
@@ -133,7 +135,7 @@ async fn main() -> std::io::Result<()> {
                 std::io::ErrorKind::Other,
                 format!("タスクの作成に失敗しました: {}", e),
             )
-        });
+        })?;
 
     sqlx::query("INSERT INTO tasks (task,priority) VALUES ('task2',2)")
         .execute(&pool)
@@ -143,7 +145,7 @@ async fn main() -> std::io::Result<()> {
                 std::io::ErrorKind::Other,
                 format!("タスクの作成に失敗しました: {}", e),
             )
-        });
+        })?;
 
     sqlx::query("INSERT INTO tasks (task,priority) VALUES ('task3',3)")
         .execute(&pool)
@@ -153,7 +155,7 @@ async fn main() -> std::io::Result<()> {
                 std::io::ErrorKind::Other,
                 format!("タスクの作成に失敗しました: {}", e),
             )
-        });
+        })?;
 
     HttpServer::new(move || {
         App::new()
@@ -161,6 +163,7 @@ async fn main() -> std::io::Result<()> {
             .service(update)
             .service(todo)
             .app_data(web::Data::new(pool.clone()))
+            .service(Files::new("/css", "./static/css").show_files_listing())
     })
     .bind(("0.0.0.0", 10000))?
     .run()
