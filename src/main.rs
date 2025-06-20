@@ -158,7 +158,7 @@ async fn main() -> std::io::Result<()> {
             std::io::ErrorKind::Other,
             format!("テーブルの作成に失敗しました:{}", e),
         )
-    });
+    })?;
 
     // 初期レコード
     NewTask {
