@@ -58,7 +58,7 @@ struct NewTask {
 }
 
 impl NewTask {
-    async fn insert_newTask(&self, pool: &web::Data<SqlitePool>) -> std::io::Result<()> {
+    async fn insert_newTask(&self, pool: &SqlitePool) -> std::io::Result<()> {
         if self.task.is_empty() {
             return Err(std::io::Error::new(
                 std::io::ErrorKind::InvalidInput,
@@ -69,7 +69,7 @@ impl NewTask {
         sqlx::query("INSERT INTO tasks (task,priority) VALUES(?,?)")
             .bind(&self.task)
             .bind(self.priority)
-            .execute(pool.as_ref())
+            .execute(pool)
             .await
             .map_err(|e| {
                 std::io::Error::new(
@@ -111,17 +111,7 @@ async fn update(
         Some(task) => {
             if !task.is_empty() {
                 let priority = received_task.priority.unwrap_or(0);
-                sqlx::query("INSERT INTO tasks (task,priority) VALUES(?,?)")
-                    .bind(task)
-                    .bind(priority)
-                    .execute(pool.as_ref())
-                    .await
-                    .map_err(|e| {
-                        std::io::Error::new(
-                            std::io::ErrorKind::Other,
-                            format!("追加クエリが失敗しました: {}", e),
-                        )
-                    })?;
+                NewTask { task, priority }.insert_newTask(&pool).await?;
             }
         }
         _ => {}
@@ -159,35 +149,25 @@ async fn main() -> std::io::Result<()> {
         )
     });
 
-    sqlx::query("INSERT INTO tasks (task,priority) VALUES ('task1',1)")
-        .execute(&pool)
-        .await
-        .map_err(|e| {
-            std::io::Error::new(
-                std::io::ErrorKind::Other,
-                format!("タスクの作成に失敗しました: {}", e),
-            )
-        })?;
-
-    sqlx::query("INSERT INTO tasks (task,priority) VALUES ('task2',2)")
-        .execute(&pool)
-        .await
-        .map_err(|e| {
-            std::io::Error::new(
-                std::io::ErrorKind::Other,
-                format!("タスクの作成に失敗しました: {}", e),
-            )
-        })?;
-
-    sqlx::query("INSERT INTO tasks (task,priority) VALUES ('task3',3)")
-        .execute(&pool)
-        .await
-        .map_err(|e| {
-            std::io::Error::new(
-                std::io::ErrorKind::Other,
-                format!("タスクの作成に失敗しました: {}", e),
-            )
-        })?;
+    // 初期レコード
+    NewTask {
+        task: "タスク1".to_string(),
+        priority: 1,
+    }
+    .insert_newTask(&pool)
+    .await?;
+    NewTask {
+        task: "タスク2".to_string(),
+        priority: 2,
+    }
+    .insert_newTask(&pool)
+    .await?;
+    NewTask {
+        task: "タスク3".to_string(),
+        priority: 3,
+    }
+    .insert_newTask(&pool)
+    .await?;
 
     HttpServer::new(move || {
         App::new()
