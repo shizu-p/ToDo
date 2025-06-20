@@ -81,11 +81,11 @@ impl NewTask {
     }
 }
 
-struct DeleteTask{
+struct DeleteTask {
     id: i64,
 }
 
-impl DeleteTask{
+impl DeleteTask {
     async fn delete_by_id(&self, pool: &SqlitePool) -> std::io::Result<()> {
         sqlx::query("DELETE FROM tasks WHERE id = ?")
             .bind(&self.id)
@@ -94,12 +94,11 @@ impl DeleteTask{
             .map_err(|e| {
                 std::io::Error::new(
                     std::io::ErrorKind::Other,
-                    format!("削除クエリが失敗しました: {}",e)
+                    format!("削除クエリが失敗しました: {}", e),
                 )
             })?;
         Ok(())
     }
-
 }
 
 #[post("/update")]
@@ -112,16 +111,7 @@ async fn update(
     // 削除処理
     match received_task.id {
         Some(id) => {
-            sqlx::query("DELETE FROM tasks WHERE id = ?")
-                .bind(id)
-                .execute(pool.as_ref())
-                .await
-                .map_err(|e| {
-                    std::io::Error::new(
-                        std::io::ErrorKind::Other,
-                        format!("削除クエリが失敗しました : {}", e),
-                    )
-                });
+            DeleteTask { id: id }.delete_by_id(&pool).await?;
         }
         _ => {}
     }
