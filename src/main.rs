@@ -32,15 +32,20 @@ struct TodoItem {
 }
 
 #[get("/")]
-async fn todo(pool: web::Data<SqlitePool>) -> HttpResponse {
+async fn todo(pool: web::Data<SqlitePool>) -> std::io::Result<HttpResponse> {
     // SQLクエリで直接TodoItemにマッピング
     let items = sqlx::query_as::<_, TodoItem>("SELECT id, task, COALESCE(priority, 0) as priority FROM tasks ORDER BY priority ASC, id ASC;")
         .fetch_all(pool.as_ref())
         .await
-        .unwrap();
+        .map_err(|e|{
+            std::io::Error::new(
+                std::io::ErrorKind::Other,
+                format!("タスクの取得に失敗しました: {}",e),
+            )
+        })?;
 
     let todo = TodoTemplate { items };
-    todo.to_response()
+    Ok(todo.to_response())
 }
 
 #[derive(serde::Deserialize)]
