@@ -16,6 +16,7 @@
                 <span class="task-name">{{ item.task }}</span> (優先度: {{ item.priority }})
                 {# 完了(削除用フォーム) #}
                 <form action="/update" method="post" class="delete-form">
+                    <input type="hidden" name="action" value="delete">
                     <input type="hidden" name="id" value="{{ item.id }}"> {# 削除するタスクid送信 #}
                     <button type="submit">完了(削除)</button>
                 </form>
@@ -29,6 +30,7 @@
     <h2>新しいタスクを追加</h2>
     <form action="/update" method="post">
         <label for="new-task">タスク名:</label>
+        <input type="hidden" name="action" value="add">
         <input type="text" id="new-task" name="task" placeholder="例: 買い物" required>
         <br>
         <label for="new-priority">優先度:</label>

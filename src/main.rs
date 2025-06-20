@@ -49,89 +49,88 @@ async fn todo(pool: web::Data<SqlitePool>) -> std::io::Result<HttpResponse> {
 }
 
 #[derive(serde::Deserialize)]
-struct Task {
+struct TaskPayload {
+    action: String,
     id: Option<i64>,
     task: Option<String>,
     priority: Option<u32>,
 }
 
-// タスク追加クエリ用 構造体 impl
-#[derive(serde::Deserialize)]
-struct NewTask {
-    task: String,
-    priority: u32,
-}
+impl TaskPayload {
+    async fn execute_action(&self, pool: &SqlitePool) -> std::io::Result<()> {
+        match self.action.as_str() {
+            "delete" => {
+                let id = self.id.ok_or_else(|| {
+                    std::io::Error::new(
+                        std::io::ErrorKind::InvalidInput,
+                        "削除にはタスクIDが必要です",
+                    )
+                })?;
+                sqlx::query("DELETE FROM tasks WHERE id = ?")
+                    .bind(id)
+                    .execute(pool)
+                    .await
+                    .map_err(|e| {
+                        std::io::Error::new(
+                            std::io::ErrorKind::Other,
+                            format!("削除クエリが失敗しました: {}", e),
+                        )
+                    })?;
+                Ok(())
+            }
+            "add" => {
+                let task = self.task.as_ref().ok_or_else(|| {
+                    std::io::Error::new(
+                        std::io::ErrorKind::InvalidInput,
+                        "追加にはタスク内容が必要です",
+                    )
+                })?;
 
-impl NewTask {
-    async fn insert_newTask(&self, pool: &SqlitePool) -> std::io::Result<()> {
-        if self.task.is_empty() {
-            return Err(std::io::Error::new(
+                let priority = self.priority.ok_or_else(|| {
+                    std::io::Error::new(
+                        std::io::ErrorKind::InvalidInput,
+                        "追加には優先度が必要です",
+                    )
+                })?;
+
+                if task.is_empty() {
+                    return Err(std::io::Error::new(
+                        std::io::ErrorKind::InvalidInput,
+                        "タスク内容は空にできません",
+                    ));
+                }
+                sqlx::query("INSERT INTO tasks (task,priority) VALUES(?,?)")
+                    .bind(&task)
+                    .bind(priority)
+                    .execute(pool)
+                    .await
+                    .map_err(|e| {
+                        std::io::Error::new(
+                            std::io::ErrorKind::Other,
+                            format!("追加クエリが失敗しました: {}", e),
+                        )
+                    })?;
+                Ok(())
+            }
+            "edit" => {
+                unreachable!();
+            }
+            _ => Err(std::io::Error::new(
                 std::io::ErrorKind::InvalidInput,
-                "タスク内容は空に出来ません",
-            ));
+                format!("不明なアクション :{}", self.action),
+            )),
         }
-
-        sqlx::query("INSERT INTO tasks (task,priority) VALUES(?,?)")
-            .bind(&self.task)
-            .bind(self.priority)
-            .execute(pool)
-            .await
-            .map_err(|e| {
-                std::io::Error::new(
-                    std::io::ErrorKind::Other,
-                    format!("追加クエリが失敗しました: {}", e),
-                )
-            })?;
-        Ok(())
-    }
-}
-
-struct DeleteTask {
-    id: i64,
-}
-
-impl DeleteTask {
-    async fn delete_by_id(&self, pool: &SqlitePool) -> std::io::Result<()> {
-        sqlx::query("DELETE FROM tasks WHERE id = ?")
-            .bind(&self.id)
-            .execute(pool)
-            .await
-            .map_err(|e| {
-                std::io::Error::new(
-                    std::io::ErrorKind::Other,
-                    format!("削除クエリが失敗しました: {}", e),
-                )
-            })?;
-        Ok(())
     }
 }
 
 #[post("/update")]
 async fn update(
     pool: web::Data<SqlitePool>,
-    form: web::Form<Task>,
+    form: web::Form<TaskPayload>,
 ) -> std::io::Result<HttpResponse> {
-    let received_task = form.into_inner(); // シャドウイングを避けるため、変数をリネーム
+    let received_payload = form.into_inner(); // シャドウイングを避けるため、変数をリネーム
 
-    // 削除処理
-    match received_task.id {
-        Some(id) => {
-            DeleteTask { id: id }.delete_by_id(&pool).await?;
-        }
-        _ => {}
-    }
-
-    // 挿入/更新処理
-
-    match received_task.task {
-        Some(task) => {
-            if !task.is_empty() {
-                let priority = received_task.priority.unwrap_or(0);
-                NewTask { task, priority }.insert_newTask(&pool).await?;
-            }
-        }
-        _ => {}
-    }
+    received_payload.execute_action(&pool).await?;
 
     Ok(HttpResponse::Found()
         .append_header(("Location", "/"))
@@ -166,25 +165,21 @@ async fn main() -> std::io::Result<()> {
     })?;
 
     // 初期レコード
-    NewTask {
-        task: "タスク1".to_string(),
-        priority: 1,
+    let initial_tasks = vec![("タスク1", 1u32), ("タスク2", 2u32), ("タスク3", 3u32)];
+    for (task_name, priority) in initial_tasks {
+        let payload = TaskPayload {
+            action: "add".to_string(),
+            id: None,
+            task: Some(task_name.to_string()),
+            priority: Some(priority),
+        };
+        payload.execute_action(&pool).await.map_err(|e| {
+            std::io::Error::new(
+                std::io::ErrorKind::Other,
+                format!("初期データの挿入に失敗しました: {}", e),
+            )
+        })?;
     }
-    .insert_newTask(&pool)
-    .await?;
-    NewTask {
-        task: "タスク2".to_string(),
-        priority: 2,
-    }
-    .insert_newTask(&pool)
-    .await?;
-    NewTask {
-        task: "タスク3".to_string(),
-        priority: 3,
-    }
-    .insert_newTask(&pool)
-    .await?;
-
     HttpServer::new(move || {
         App::new()
             .service(hello)
