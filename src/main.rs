@@ -1,9 +1,8 @@
+use actix_files::Files;
 use actix_web::{App, HttpResponse, HttpServer, get, post, web};
 use askama::Template;
 use askama_actix::TemplateToResponse;
 use sqlx::{FromRow, SqlitePool};
-use actix_files::Files;
-
 
 #[derive(Template)]
 #[template(path = "hello.html")]
@@ -51,9 +50,42 @@ struct Task {
     priority: Option<u32>,
 }
 
+// タスク追加クエリ用 構造体 impl
+#[derive(serde::Deserialize)]
+struct NewTask {
+    task: String,
+    priority: u32,
+}
+
+impl NewTask {
+    async fn insert_newTask(&self, pool: &web::Data<SqlitePool>) -> std::io::Result<()> {
+        if self.task.is_empty() {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidInput,
+                "タスク内容は空に出来ません",
+            ));
+        }
+
+        sqlx::query("INSERT INTO tasks (task,priority) VALUES(?,?)")
+            .bind(&self.task)
+            .bind(self.priority)
+            .execute(pool.as_ref())
+            .await
+            .map_err(|e| {
+                std::io::Error::new(
+                    std::io::ErrorKind::Other,
+                    format!("追加クエリが失敗しました: {}", e),
+                )
+            })?;
+        Ok(())
+    }
+}
+
 #[post("/update")]
-async fn update(pool: web::Data<SqlitePool>, form: web::Form<Task>)
--> std::io::Result<HttpResponse> {
+async fn update(
+    pool: web::Data<SqlitePool>,
+    form: web::Form<Task>,
+) -> std::io::Result<HttpResponse> {
     let received_task = form.into_inner(); // シャドウイングを避けるため、変数をリネーム
 
     // 削除処理
@@ -66,7 +98,7 @@ async fn update(pool: web::Data<SqlitePool>, form: web::Form<Task>)
                 .map_err(|e| {
                     std::io::Error::new(
                         std::io::ErrorKind::Other,
-                        format!("削除クエリが失敗しました : {}",e),
+                        format!("削除クエリが失敗しました : {}", e),
                     )
                 });
         }
@@ -87,7 +119,7 @@ async fn update(pool: web::Data<SqlitePool>, form: web::Form<Task>)
                     .map_err(|e| {
                         std::io::Error::new(
                             std::io::ErrorKind::Other,
-                            format!("追加クエリが失敗しました: {}",e),
+                            format!("追加クエリが失敗しました: {}", e),
                         )
                     })?;
             }
