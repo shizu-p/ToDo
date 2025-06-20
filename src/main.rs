@@ -185,6 +185,12 @@ async fn main() -> std::io::Result<()> {
     .insert_newTask(&pool)
     .await?;
 
+
+    let port = std::env::var("PORT")
+        .unwrap_or_else(|_| "10000".to_string())
+        .parse::<u16>()
+        .expect("PORT環境変数が有効なポート番号ではありません");
+
     HttpServer::new(move || {
         App::new()
             .service(hello)
