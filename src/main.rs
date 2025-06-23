@@ -216,7 +216,7 @@ async fn main() -> std::io::Result<()> {
             .service(update)
             .service(todo)
             .app_data(web::Data::new(pool.clone()))
-            .service(Files::new("/css", "./static/css").show_files_listing())
+            .service(Files::new("/static", "./static").show_files_listing())
     })
     .bind(("0.0.0.0", 8080))?
     .run()
