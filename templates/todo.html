@@ -20,7 +20,17 @@
                     <input type="hidden" name="id" value="{{ item.id }}"> {# 削除するタスクid送信 #}
                     <button type="submit">完了(削除)</button>
                 </form>
+                <button type="button" value="{{ item.id }}">編集</button>
             </li>
+            {# 編集フォーム #}
+            <form id="edit-{{ item.id }}" action="/update" method="post" class="edit-form">
+                <input type="hidden" name="action" value="edit">
+                <input type="hidden" name="id" value="{{ item.id }}">
+                <input type="text" name="task" value="{{ item.task }}" required>
+                <input type="number" name="priority" value="{{ item.priority }}" min="1" max="10" required> 
+                <button type="submit">保存</button>
+                <button type="button">編集破棄</button>
+            </form>
 
         {% endfor %}
     </ul>
