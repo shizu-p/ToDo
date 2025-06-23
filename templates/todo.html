@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Todo List</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
     <h1>My Todo List</h1>
@@ -20,7 +20,7 @@
                     <input type="hidden" name="id" value="{{ item.id }}"> {# 削除するタスクid送信 #}
                     <button type="submit">完了(削除)</button>
                 </form>
-                <button type="button" value="{{ item.id }}">編集</button>
+                <button type="button" value="{{ item.id }}" class="edit-toggle-button">編集</button>
             </li>
             {# 編集フォーム #}
             <form id="edit-{{ item.id }}" action="/update" method="post" class="edit-form">
@@ -29,7 +29,7 @@
                 <input type="text" name="task" value="{{ item.task }}" required>
                 <input type="number" name="priority" value="{{ item.priority }}" min="1" max="10" required> 
                 <button type="submit">保存</button>
-                <button type="button">編集破棄</button>
+                <button type="button" class="cancel-edit-button">編集破棄</button>
             </form>
 
         {% endfor %}
@@ -48,6 +48,6 @@
         <br>
         <button type="submit">追加</button>
     </form>
-    {# <script src="/static/script.js"></script> 不要になるため #}
+    <script src="/static/script.js"></script>
 </body>
 </html>

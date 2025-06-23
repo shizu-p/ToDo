@@ -83,6 +83,7 @@ form button {
 form button:hover {
     background-color: #0056b3;
 }
-// 非表示
+
 .edit-form {
+    display:none;
 }
