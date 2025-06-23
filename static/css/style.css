@@ -49,7 +49,7 @@ h1 {
 
 form {
     //margin-top: 20px;
-    //background-color: #fff;
+    background-color: #fff;
     padding: 20px;
     border-radius: 5px;
 //    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -81,5 +81,18 @@ form button {
 }
 
 form button:hover {
-    background-color: #0056b3;
+}
+.edit-toggle-button {
+  font-size:16px;
+  background-color: #84C98B;
+  color: white;
+  border: 1px solid black;
+  border-radius: 5px;
+  padding: 5px 15px;
+  margin: 5px 5px;
+}
+
+.edit-form {
+    display:none;
+    margin:5px;
 }

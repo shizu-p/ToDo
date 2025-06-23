@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Todo List</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="static/css/style.css">
 </head>
 <body>
     <h1>My Todo List</h1>
@@ -14,12 +14,24 @@
         {% for item in items %}
             <li id="task-item-{{ item.id }}">
                 <span class="task-name">{{ item.task }}</span> (優先度: {{ item.priority }})
+                <button type="button" value="{{ item.id }}" class="edit-toggle-button">編集</button>
                 {# 完了(削除用フォーム) #}
                 <form action="/update" method="post" class="delete-form">
+                    <input type="hidden" name="action" value="delete">
                     <input type="hidden" name="id" value="{{ item.id }}"> {# 削除するタスクid送信 #}
                     <button type="submit">完了(削除)</button>
                 </form>
             </li>
+            {# 編集フォーム #}
+            <form id="edit-{{ item.id }}" action="/update" method="post" class="edit-form">
+                <input type="hidden" name="action" value="edit">
+                <input type="hidden" name="id" value="{{ item.id }}">
+                <input type="text" name="task" value="{{ item.task }}" required>
+                <input type="number" name="priority" value="{{ item.priority }}" min="1" max="10" required> 
+                <button type="submit" class="save">保存</button>
+                <button type="button" class="cancel-edit-button">編集破棄</button>
+                <br>
+            </form>
 
         {% endfor %}
     </ul>
@@ -29,6 +41,7 @@
     <h2>新しいタスクを追加</h2>
     <form action="/update" method="post">
         <label for="new-task">タスク名:</label>
+        <input type="hidden" name="action" value="add">
         <input type="text" id="new-task" name="task" placeholder="例: 買い物" required>
         <br>
         <label for="new-priority">優先度:</label>
@@ -36,6 +49,6 @@
         <br>
         <button type="submit">追加</button>
     </form>
-    {# <script src="/static/script.js"></script> 不要になるため #}
+    <script src="/static/script.js"></script>
 </body>
 </html>

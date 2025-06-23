@@ -1,55 +1,43 @@
-/**
- * delete task
- * @param {string} taskId - DBに存在するuniqueID
- * @param {string} taskElementId - HTML上のタスクDOM
- */
+document.addEventListener('DOMContentLoaded', () => {
+    const editButtons = document.querySelectorAll('.edit-toggle-button');
+    const cancelEditButtons = document.querySelectorAll('.cancel-edit-button');
+    const saveButtons = document.querySelectorAll('.save');
+    
+    editButtons.forEach(button => {
+        button.addEventListener('click', (event) => {
+            // クリックされたボタンの value (タスクID) を取得
+            const itemId = event.target.value;
 
-async function deleteTask(taskId,taskElementId) {
-    const taskItem = document.getElementById(taskElementId);
-    if(!taskItem) {
-        console.error(`エラー:HTML要素ID{taskElementId}のタスクが見つかりませんでした。`);
-        return;
-    }
-    const taskNameSpan = taskItem.querySector('.task-name');
-    const taskName = taskNameSpan ? taskNameSpan.textContent:'不明なタスク';
-    const completeButton = taskItem.querySelector('.complete-bton');
+            // 取得したIDを使って、対応する編集フォームのIDを構築し、フォーム要素を取得
+            const targetEditForm = document.getElementById(`edit-${itemId}`);
+            const computedDisplay = window.getComputedStyle(targetEditForm).display;
 
-    if(completeButton) {
-        completeButton.disable = true;
-        completeButton.textContent = '削除中';
-    }
-
-    console.log(`taskID ${taskId} (${taskName}) の削除を試みます`);
-
-    try {
-        const response = await fetch(`/api/tasks/${taskId}` , {
-            method : 'DELETE',
-            headers:{
-                'Content-Type' : 'application/json',
+            if(computedDisplay == 'none'){
+                targetEditForm.style.display = 'block';
+            } else {
+                targetEditForm.style.display = 'none';
             }
         });
+    });
 
-        if (response.ok) {
-            // htmlから消す
-            taskItem.remove();
-            console.log(`task  "${taskName}" がUIから削除されました`);
-            alert(`task "${taskName}" が完了しました`);
-        } else {
-            const errorText = await response.text();
-            console.error(`タスク削除に失敗しました: ${response.status} ${response.statusText}`,errorText);
-            alert(`task "${taskName}" の削除に失敗しました: ${errorText || '不明なエラー'}`);
-            if(completeButton) {
-                completeButton.disabled = false;
-                completeButton.textContent = '完了';
+    // --- 各「編集破棄」ボタンにイベントリスナーを設定 ---
+    cancelEditButtons.forEach(button => {
+        button.addEventListener('click', (event) => {
+            // 「編集破棄」ボタンの親要素であるフォームを取得
+            const parentForm = event.target.closest('.edit-form');
+            if (parentForm) {
+                parentForm.style.display = 'none'; // フォームを非表示にする
             }
-        }
-    } catch (error) {
-        console.error(`API呼び出し中にネットワークエラーが発生しました:`,error);
-        alert(`ネットワークエラーが発生しました。タスク "${taskName}" を削除できませんでした。`);
+        });
+    });
 
-        if(completeButton) {
-            completeButton.disabled = false;
-            completeButton.textContent = '完了';
-        }
-    }
-}
+    // 保存ボタンで同じこと
+   saveButtons.forEach(button => {
+       button.addEventListener('click' , (event) => {
+           const parentForm = event.target.closest('.edit-form');
+           if(parentForm){
+               parentForm.style.display = 'none';
+           }
+       });
+   });
+});
