@@ -10,8 +10,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // 取得したIDを使って、対応する編集フォームのIDを構築し、フォーム要素を取得
             const targetEditForm = document.getElementById(`edit-${itemId}`);
-            const targetEditStatus = targetEditForm.style.display;
-            if(targetEditForm.style.display == 'none' || targetEditForm.style.display == ''){
+            const computedDisplay = window.getComputedStyle(targetEditForm).display;
+
+            if(computedDisplay == 'none'){
                 targetEditForm.style.display = 'block';
             } else {
                 targetEditForm.style.display = 'none';
