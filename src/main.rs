@@ -113,7 +113,37 @@ impl TaskPayload {
                 Ok(())
             }
             "edit" => {
-                unreachable!();
+                let id = self.id.ok_or_else(|| {
+                    std::io::Error::new(
+                        std::io::ErrorKind::InvalidInput,
+                        "削除にはタスクIDが必要です",
+                    )
+                })?;
+                let task = self.task.as_ref().ok_or_else(|| {
+                    std::io::Error::new(
+                        std::io::ErrorKind::InvalidInput,
+                        "追加にはタスク内容が必要です",
+                    )
+                })?;
+                let priority = self.priority.ok_or_else(|| {
+                    std::io::Error::new(
+                        std::io::ErrorKind::InvalidInput,
+                        "追加には優先度が必要です",
+                    )
+                })?;
+                sqlx::query("UPDATE tasks SET task=? ,priority=? WHERE id = ?")
+                    .bind(task)
+                    .bind(priority)
+                    .bind(id)
+                    .execute(pool)
+                    .await
+                    .map_err(|e| {
+                        std::io::Error::new(
+                            std::io::ErrorKind::Other,
+                            format!("編集クエリが失敗しました: {}", e),
+                        )
+                    })?;
+                Ok(())
             }
             _ => Err(std::io::Error::new(
                 std::io::ErrorKind::InvalidInput,
